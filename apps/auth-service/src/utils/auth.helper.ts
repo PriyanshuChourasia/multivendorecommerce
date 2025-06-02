@@ -1,6 +1,6 @@
 import crypto from "crypto";
-import { ValidationError } from "../../../../packages/error-handlers";
-import redis from "../../../../packages/libs/redis";
+import { ValidationError } from "@packages/error-handlers";
+import redis from "@packages/libs/redis";
 import { sendEmail } from "./sendMail";
 import { NextFunction } from "express";
 
@@ -13,7 +13,7 @@ export const validateRegistrationData = (data:any, userType:"user" | "seller") =
   if(
     !name || !email || !password || (userType === "seller" && (!phone_number || !country))
   ){
-    throw new ValidationError(`Missong required fields`);
+    throw new ValidationError(`Missing required fields`);
   }
 
   if(!emailRegex.test(email)){
@@ -41,10 +41,10 @@ export const trackOtpRequests = async(email:string,next:NextFunction) =>{
   let otpRequests = parseInt((await redis.get(otpRequestKey)) || "o");
   if(otpRequests >= 2){
     await redis.set(`otp_spam_lock:${email}`,"locked","EX",3600); // Lock for 1 hour
-    return new ValidationError("Too many OTP requests. Please wait 1 hour before requesting again.")
+    return next(new ValidationError("Too many OTP requests. Please wait 1 hour before requesting again."));
   }
 
-  await redis.set(otpRequestKey,otpRequests+1,"EX",3600);
+  await redis.set(otpRequestKey,otpRequests+1,"EX",3600); // Tracking Request for one hour
 }
 
 export const sendOtp = async (name:string,email:string,template:string) => {
