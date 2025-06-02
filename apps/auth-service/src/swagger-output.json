@@ -13,7 +13,7 @@
   "paths": {
     "/api/user-registration": {
       "post": {
-        "tags":["User"],
+        "tags":["Users"],
         "description": "",
         "parameters": [
           {
@@ -23,10 +23,10 @@
               "type": "object",
               "properties": {
                 "name": {
-                  "example": "Priyanshu Chourasia"
+                  "example": "any"
                 },
                 "email": {
-                  "example": "priyanshuchourasia916@gmail.com"
+                  "example": "any"
                 }
               }
             }
@@ -35,6 +35,40 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/verify-user": {
+      "post": {
+        "tags":["Users"],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "otp": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                },
+                "name": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
           }
         }
       }
