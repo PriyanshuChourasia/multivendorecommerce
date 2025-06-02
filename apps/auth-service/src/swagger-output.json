@@ -13,7 +13,6 @@
   "paths": {
     "/api/user-registration": {
       "post": {
-        "tags":["Users"],
         "description": "",
         "parameters": [
           {
@@ -41,7 +40,6 @@
     },
     "/api/verify-user": {
       "post": {
-        "tags":["Users"],
         "description": "",
         "parameters": [
           {
@@ -60,6 +58,33 @@
                   "example": "any"
                 },
                 "name": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
                   "example": "any"
                 }
               }
