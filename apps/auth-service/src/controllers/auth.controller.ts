@@ -1,5 +1,5 @@
 import {Request,Response,NextFunction} from "express";
-import { checkOtpRestrictions, sendOtp, trackOtpRequests, validateRegistrationData, verifyOtp } from "../utils/auth.helper";
+import { checkOtpRestrictions, handleForgotPassword, sendOtp, trackOtpRequests, validateRegistrationData, verifyOtp } from "../utils/auth.helper";
 import prisma from "@packages/libs/prisma";
 import { AuthError, ValidationError } from "@packages/error-handlers";
 import bcrypt from "bcryptjs";
@@ -109,5 +109,76 @@ export const loginUser = async(req:Request,res:Response,next:NextFunction) =>{
 
   }catch(error){
     return next(error);
+  }
+}
+
+
+
+/** Forgot Password */
+
+export const forgotPassword = async(req:Request,res:Response,next:NextFunction) =>{
+  await handleForgotPassword(req,res,next,"user");
+}
+
+/** Verify forgot password OTP */
+
+export const verifyUserForgotPassword = async(req:Request,res:Response,next:NextFunction) =>{
+  await verifyForgotPasswordOtp(req,res,next);
+}
+
+/** Reset User Password */
+
+export const resetUserPassword = async(req:Request,res:Response,next:NextFunction)=>{
+  try{
+    const {email,newPassword} = req.body;
+
+    if(!email || !newPassword){
+      throw new ValidationError("Email and new Password are required!");
+    }
+
+    const user = await prisma.users.findUnique({where: {email}});
+    if(!user){
+      throw new ValidationError("User not found!");
+    }
+
+    // compare new password
+    const isPasswordMatch = await bcrypt.compare(newPassword,user.password);
+    if(isPasswordMatch){
+      throw new ValidationError("New Password cannot be the same as the old password!");
+    }
+
+    // hash the new Password
+    const hashedPassword = await bcrypt.hash(newPassword,10);
+
+    await prisma.users.update({
+      where: {email},
+      data: {
+        password: hashedPassword
+      }
+    });
+
+    res.status(StatusCodes.OK).json({
+      message: "Password reset successfully"
+    })
+  }catch(error){
+
+  }
+}
+
+export const verifyForgotPasswordOtp = async(req:Request,res:Response,next:NextFunction) =>{
+  try{
+    const {email,otp} = req.body;
+
+    if(!email || !otp){
+      throw new ValidationError("Email and OTP are required!");
+    }
+
+    await verifyOtp(email,otp,next);
+
+    res.status(StatusCodes.OK).json({
+      message:"OTP verified. You can now reset your password."
+    })
+  }catch(error){
+    next(error);
   }
 }
