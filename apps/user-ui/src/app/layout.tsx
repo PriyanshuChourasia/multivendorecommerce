@@ -1,6 +1,8 @@
 import Header from '../shared/widgets/header';
 import './global.css';
 import {Poppins,Roboto} from "next/font/google";
+import Providers from './providers';
+import StoreProvider from '../redux/redux';
 
 export const metadata = {
   title: 'Ecom',
@@ -27,8 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${roboto.variable} ${poppins.variable}`}>
-        <Header/>
-        {children}
+        <StoreProvider>
+          <Providers>
+            <Header/>
+            {children}
+          </Providers>
+        </StoreProvider>
       </body>
     </html>
   )
