@@ -38,6 +38,7 @@ export const userRegistration = async (req:Request,res:Response,next:NextFunctio
 export const verifyUser = async(req:Request,res:Response,next:NextFunction) => {
   try{
     const {email,otp,password,name} = req.body;
+    console.log(otp,"otp..");
     if(!email || !otp || !password || !name){
       return next(new ValidationError("All fields are required!"));
     }

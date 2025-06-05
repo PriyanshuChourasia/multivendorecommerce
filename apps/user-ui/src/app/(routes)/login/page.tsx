@@ -1,8 +1,10 @@
 "use client";
+import { useMutation } from "@tanstack/react-query";
 import GoogleButton from "apps/user-ui/src/shared/components";
+import axios, { AxiosError } from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import {useForm} from "react-hook-form";
 
@@ -16,7 +18,7 @@ const Login = () => {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
-  // const router = useRouter();
+  const router = useRouter();
 
   const {
     register,
@@ -24,7 +26,28 @@ const Login = () => {
     formState: {errors},
   } = useForm<FormData>();
 
-  const onSubmit = (data:FormData) => {};
+  const loginMutation  = useMutation({
+    mutationFn: async(data:FormData)=>{
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URI}/api/login`,data,
+        {
+          withCredentials: true
+        }
+      );
+      return response.data;
+    },
+    onSuccess:(data)=>{
+      setServerError(null);
+      router.push("/");
+    },
+    onError:(error:AxiosError)=>{
+      const errorMessage = (error.response?.data as {message?: string})?.message || "Invalid credentials!";
+      setServerError(errorMessage);
+    }
+  })
+
+  const onSubmit = (data:FormData) => {
+    loginMutation.mutate(data);
+  };
 
   return(
     <div className="w-full py-10 min-h-[85vh] bg-[#f1f1f1]">
@@ -105,8 +128,8 @@ const Login = () => {
                   </Link>
                 </div>
 
-                <button type="submit" className="w-full py-2 text-lg text-white bg-black rounded-lg cursor-pointer">
-                  Login
+                <button disabled={loginMutation.isPending} type="submit" className="w-full py-2 text-lg text-white bg-black rounded-lg cursor-pointer">
+                  {loginMutation.isPending ? "Logging in...." : "Login"}
                 </button>
 
                 {

@@ -1,24 +1,25 @@
 "use client";
+import { useMutation } from "@tanstack/react-query";
 import { SignUpFormData } from "apps/user-ui/src/dataTypes/SignUpFormData";
 import GoogleButton from "apps/user-ui/src/shared/components";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import React, { use, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import axios, { AxiosError } from 'axios';
 
 
 
 const SignUp = () => {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
-  const [serverError, setServerError] = useState<string | null>(null);
   const [showOtp,setShowOtp] = useState<boolean>(false);
   const [canResend, setCanResend] = useState<boolean>(true);
   const [timer,setTimer] = useState<number>(60);
   const [otp,setOtp] = useState<string[]>(["","","",""]);
   const [userData,setUserData] = useState<SignUpFormData | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  // const router = useRouter();
+  const router = useRouter();
 
   const {
     register,
@@ -26,10 +27,52 @@ const SignUp = () => {
     formState: { errors },
   } = useForm<SignUpFormData>();
 
+  const startResendTimer = () =>{
+    const interval = setInterval(()=>{
+      setTimer((prev)=>{
+        if(prev <= 1){
+          clearInterval(interval);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    },1000);
+  }
 
+  const signUpMutation = useMutation({
+    mutationFn: async (data:SignUpFormData)=>{
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/api/user-registration`,
+        data
+      );
+      return response.data;
+    },
+    onSuccess:(_,formData)=>{
+      setUserData(formData);
+      setShowOtp(true);
+      setCanResend(false);
+      setTimer(60);
+      startResendTimer();
+    }
+  });
+
+  const verifyOtpMutation = useMutation({
+    mutationFn:async()=>{
+      if(!userData) return;
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URI}/api/verify-user`,{
+        ...userData,
+        otp: otp.join("")
+      });
+      return response.data;
+    },
+    onSuccess:()=>{
+      router.push("/login");
+    }
+  })
 
   const onSubmit = (data: SignUpFormData) => {
-    console.log(data);
+    signUpMutation.mutate(data);
   };
 
   const handleOtpChange = (index:number,value:string) =>{
@@ -171,15 +214,12 @@ const SignUp = () => {
             </div> */}
 
             <button
+            disabled={signUpMutation.isPending}
               type="submit"
               className="w-full py-2 mt-6 text-lg text-white bg-black rounded-lg cursor-pointer"
             >
-              Sign Up
+              {signUpMutation.isPending ? "Signing up...." : "SignUp"}
             </button>
-
-            {serverError && (
-              <p className="mt-2 text-sm text-red-500">{serverError}</p>
-            )}
           </form>
             )
             :
@@ -208,8 +248,9 @@ const SignUp = () => {
                     ))
                   }
                 </div>
-                <button className="w-full py-2 mt-4 text-lg text-white bg-blue-500 rounded-lg cursor-pointer">
-                  Verify OTP
+                <button onClick={()=>verifyOtpMutation.mutate()}
+                disabled={verifyOtpMutation.isPending} className="w-full py-2 mt-4 text-lg text-white bg-blue-500 rounded-lg cursor-pointer spinner">
+                  {verifyOtpMutation.isPending ? "Verifying...." : "Verify OTP"}
                 </button>
                 <p className="mt-4 text-sm text-center">
                   {
@@ -227,6 +268,16 @@ const SignUp = () => {
                     )
                   }
                 </p>
+                {
+                  verifyOtpMutation?.isError &&
+                  verifyOtpMutation.error instanceof AxiosError && (
+                    <p className="mt-2 text-sm text-red-500">
+                      {verifyOtpMutation.error.response?.data?.message
+                        || verifyOtpMutation.error.message
+                      }
+                    </p>
+                  )
+                }
               </div>
             )
           }

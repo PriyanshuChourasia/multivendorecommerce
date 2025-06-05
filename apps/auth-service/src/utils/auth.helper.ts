@@ -66,9 +66,11 @@ export const verifyOtp = async(email:string,otp:string,next:NextFunction) =>{
 
   const failedAttemptKey = `otp_attempts:${email}`;
   const failedAttemps = parseInt((await redis.get(failedAttemptKey)) || "o");
+  console.log(failedAttemps,"failed attempts");
 
   if(storedOtp !== otp){
     if(failedAttemps >= 2){
+      console.log(failedAttemps,"failed attempts");
       await redis.set(`otp_lock:${email}`,"locked","EX",1800); // Lock for 30 minutes
       await redis.del(`otp:${email}`,failedAttemptKey);
       throw  new ValidationError("Too many failed attempts. Your account is locked for 30 minutes")
