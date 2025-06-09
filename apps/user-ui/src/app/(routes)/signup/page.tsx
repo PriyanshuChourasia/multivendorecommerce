@@ -94,7 +94,9 @@ const SignUp = () => {
   }
 
   const resendOtp = () => {
-
+    if(userData){
+      signUpMutation.mutate(userData);
+    }
   }
 
   return (
