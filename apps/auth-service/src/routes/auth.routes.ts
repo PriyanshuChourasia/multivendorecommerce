@@ -1,5 +1,5 @@
 import express, {Router} from "express";
-import { forgotPassword, loginUser, resetUserPassword, userRegistration, verifyUser, verifyUserForgotPassword } from "../controllers/auth.controller";
+import { forgotPassword, loginUser, refreshToken, resetUserPassword, userRegistration, verifyUser, verifyUserForgotPassword } from "../controllers/auth.controller";
 
 
 const router:Router = express.Router();
@@ -10,6 +10,7 @@ router.post("/login",loginUser);
 router.post("/forgot-password-user",forgotPassword);
 router.post("/reset-password-user",resetUserPassword);
 router.post("/verify-forgot-password-user",verifyUserForgotPassword);
+router.post("/refresh-token-user",refreshToken);
 
 
 export default router;
