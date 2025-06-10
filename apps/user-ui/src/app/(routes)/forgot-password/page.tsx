@@ -81,7 +81,7 @@ const ForgotPassword = () => {
   const resetPasswordMutation = useMutation({
     mutationFn: async({password}:{password:string})=>{
       if(!password) return;
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URI}/api/verify-forgot-password-user`,
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URI}/api/reset-password-user`,
         {email:userEmail,newPassword: password}
       );
       return response.data;
@@ -263,7 +263,7 @@ const ForgotPassword = () => {
 
                 <button
                   type="submit"
-                  className="w-full mt-4 text-lg text-white bg-black cursor-pointer"
+                  className="w-full py-2 mt-4 text-lg text-white bg-black rounded-sm cursor-pointer"
                   disabled={resetPasswordMutation.isPending}
                 >
                   {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
